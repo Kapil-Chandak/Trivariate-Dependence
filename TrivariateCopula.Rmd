@@ -1,0 +1,360 @@
+---
+title: "WSPD Trivariate extreme value analysis"
+author: "Kapil Chandak, Nalini Ravishanker and James O'Donnell"
+header-includes:
+- \usepackage{cases}
+- \usepackage{amsmath}
+- \usepackage{natbib}
+- \usepackage{titlesec}
+date: "`r Sys.Date()`"
+output:
+  bookdown::pdf_document2:
+  toc: true
+toc_depth: 6
+number_sections: true
+
+bibliography: references.bib
+---
+  \newpage
+
+```{r setup, include=FALSE,warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+\newpage
+```{r data}
+library(dplyr)
+library(copula)
+library(MASS)
+
+# Read data
+
+setwd("file_path")
+a<-read.csv("daily_data.csv")
+
+b1<-a[,c(3,7,9)]
+b2<-a[,c(4,6,9)]
+b3<-a[,c(3,8,9)]
+b4<-a[,c(4,8,9)]
+```
+
+```{r b1}
+get_bic <- function(fit, u) {
+  -2 * as.numeric(logLik(fit)) + length(coef(fit)) * log(nrow(u))
+}
+
+# Convert data to pseudo-observations (copula scale)
+u <- pobs(b1)
+
+# Define copulas
+clayton_base <- claytonCopula(dim = 3)
+surv_clayton_copula <- rotCopula(clayton_base, flip = c(TRUE, TRUE, TRUE))  # 180° rotation = survival Clayton
+
+gumbel_copula <- gumbelCopula(dim = 3)
+frank_copula  <- frankCopula(dim = 3)
+
+# Fit the copulas to data
+fitsc <- fitCopula(surv_clayton_copula, u, method = "mpl")
+fitg  <- fitCopula(gumbel_copula, u, method = "mpl")
+fitf  <- fitCopula(frank_copula, u, method = "mpl")
+
+# Extract estimated theta
+theta_hatsc <- coef(fitsc)
+theta_hatg  <- coef(fitg)
+theta_hatf  <- coef(fitf)
+
+
+# Standard errors
+sd_hatsc <- sqrt(diag(vcov(fitsc)))
+sd_hatg  <- sqrt(diag(vcov(fitg)))
+sd_hatf  <- sqrt(diag(vcov(fitf)))
+
+bic_sc <- get_bic(fitsc, u)
+bic_g  <- get_bic(fitg, u)
+bic_f  <- get_bic(fitf, u)
+
+cat("BIC for survival Clayton:", bic_sc, "\n")
+cat("BIC for Gumbel:", bic_g, "\n")
+cat("BIC for Frank:", bic_f, "\n")
+
+# Print results
+print(fitsc)
+print(fitg)
+print(fitf)
+
+# Print
+cat("Estimated Theta for survival Clayton:", theta_hatsc, "\n")
+cat("SD / SE for survival Clayton:", sd_hatsc, "\n\n")
+
+cat("Estimated Theta for Gumbel:", theta_hatg, "\n")
+cat("SD / SE for Gumbel:", sd_hatg, "\n\n")
+
+cat("Estimated Theta for Frank:", theta_hatf, "\n")
+cat("SD / SE for Frank:", sd_hatf, "\n")
+```
+
+```{r b2}
+# Convert data to pseudo-observations (copula scale)
+u <- pobs(b2)
+
+# Define copulas
+clayton_base <- claytonCopula(dim = 3)
+surv_clayton_copula <- rotCopula(clayton_base, flip = c(TRUE, TRUE, TRUE))  # 180° rotation = survival Clayton
+
+gumbel_copula <- gumbelCopula(dim = 3)
+frank_copula  <- frankCopula(dim = 3)
+
+# Fit the copulas to data
+fitsc <- fitCopula(surv_clayton_copula, u, method = "mpl")
+fitg  <- fitCopula(gumbel_copula, u, method = "mpl",start=2)
+fitf  <- fitCopula(frank_copula, u, method = "mpl",start=1)
+
+# Extract estimated theta
+theta_hatsc <- coef(fitsc)
+theta_hatg  <- coef(fitg)
+theta_hatf  <- coef(fitf)
+
+
+# Standard errors
+sd_hatsc <- sqrt(diag(vcov(fitsc)))
+sd_hatg  <- sqrt(diag(vcov(fitg)))
+sd_hatf  <- sqrt(diag(vcov(fitf)))
+
+bic_sc <- get_bic(fitsc, u)
+bic_g  <- get_bic(fitg, u)
+bic_f  <- get_bic(fitf, u)
+
+cat("BIC for survival Clayton:", bic_sc, "\n")
+cat("BIC for Gumbel:", bic_g, "\n")
+cat("BIC for Frank:", bic_f, "\n")
+
+# Print results
+print(fitsc)
+print(fitg)
+print(fitf)
+
+# Print
+cat("Estimated Theta for survival Clayton:", theta_hatsc, "\n")
+cat("SD / SE for survival Clayton:", sd_hatsc, "\n\n")
+
+cat("Estimated Theta for Gumbel:", theta_hatg, "\n")
+cat("SD / SE for Gumbel:", sd_hatg, "\n\n")
+
+cat("Estimated Theta for Frank:", theta_hatf, "\n")
+cat("SD / SE for Frank:", sd_hatf, "\n")
+```
+
+
+```{r b3}
+# Convert data to pseudo-observations (copula scale)
+u <- pobs(b3)
+
+# Define copulas
+clayton_base <- claytonCopula(dim = 3)
+surv_clayton_copula <- rotCopula(clayton_base, flip = c(TRUE, TRUE, TRUE))  # 180° rotation = survival Clayton
+
+gumbel_copula <- gumbelCopula(dim = 3)
+frank_copula  <- frankCopula(dim = 3)
+
+# Fit the copulas to data
+fitsc <- fitCopula(surv_clayton_copula, u, method = "mpl")
+fitg  <- fitCopula(gumbel_copula, u, method = "mpl",start=1)
+fitf  <- fitCopula(frank_copula, u, method = "mpl")
+
+# Extract estimated theta
+theta_hatsc <- coef(fitsc)
+theta_hatg  <- coef(fitg)
+theta_hatf  <- coef(fitf)
+
+
+# Standard errors
+sd_hatsc <- sqrt(diag(vcov(fitsc)))
+sd_hatg  <- sqrt(diag(vcov(fitg)))
+sd_hatf  <- sqrt(diag(vcov(fitf)))
+
+bic_sc <- get_bic(fitsc, u)
+bic_g  <- get_bic(fitg, u)
+bic_f  <- get_bic(fitf, u)
+
+cat("BIC for survival Clayton:", bic_sc, "\n")
+cat("BIC for Gumbel:", bic_g, "\n")
+cat("BIC for Frank:", bic_f, "\n")
+
+# Print results
+print(fitsc)
+print(fitg)
+print(fitf)
+
+# Print
+cat("Estimated Theta for survival Clayton:", theta_hatsc, "\n")
+cat("SD / SE for survival Clayton:", sd_hatsc, "\n\n")
+
+cat("Estimated Theta for Gumbel:", theta_hatg, "\n")
+cat("SD / SE for Gumbel:", sd_hatg, "\n\n")
+
+cat("Estimated Theta for Frank:", theta_hatf, "\n")
+cat("SD / SE for Frank:", sd_hatf, "\n")
+```
+
+```{r normal_t_b1}
+# Convert data to pseudo-observations (copula scale)
+u <- pobs(b1)
+
+# ---------------------------
+# Gaussian copula
+# ---------------------------
+gaussian_copula <- normalCopula(dim = 3, dispstr = "un")
+fit_gaussian <- fitCopula(gaussian_copula, u, method = "mpl")
+
+# Extract estimated parameters
+coef_gaussian <- coef(fit_gaussian)
+
+# Standard errors
+se_gaussian <- sqrt(diag(vcov(fit_gaussian)))
+
+# Print results
+print(fit_gaussian)
+
+cat("Estimated parameters for Gaussian copula:\n")
+print(coef_gaussian)
+
+cat("SE for Gaussian copula parameters:\n")
+print(se_gaussian)
+
+
+# ---------------------------
+# t copula
+# ---------------------------
+t_copula <- tCopula(dim = 3, dispstr = "un", df.fixed = FALSE)
+fit_t <- fitCopula(t_copula, u, method = "mpl")
+
+# Extract estimated parameters
+coef_t <- coef(fit_t)
+
+# Standard errors
+se_t <- sqrt(diag(vcov(fit_t)))
+
+bic_gaussian <- get_bic(fit_gaussian, u)
+bic_t        <- get_bic(fit_t, u)
+
+cat("BIC for Gaussian Copula:", bic_gaussian, "\n")
+cat("BIC for t Copula:", bic_t, "\n")
+
+# Print results
+print(fit_t)
+
+cat("Estimated parameters for t copula:\n")
+print(coef_t)
+
+cat("SE for t copula parameters:\n")
+print(se_t)
+```
+
+```{r normal_t_b2}
+# Convert data to pseudo-observations (copula scale)
+u <- pobs(b2)
+
+# ---------------------------
+# Gaussian copula
+# ---------------------------
+gaussian_copula <- normalCopula(dim = 3, dispstr = "un")
+fit_gaussian <- fitCopula(gaussian_copula, u, method = "mpl")
+
+# Extract estimated parameters
+coef_gaussian <- coef(fit_gaussian)
+
+# Standard errors
+se_gaussian <- sqrt(diag(vcov(fit_gaussian)))
+
+# Print results
+print(fit_gaussian)
+
+cat("Estimated parameters for Gaussian copula:\n")
+print(coef_gaussian)
+
+cat("SE for Gaussian copula parameters:\n")
+print(se_gaussian)
+
+
+# ---------------------------
+# t copula
+# ---------------------------
+t_copula <- tCopula(dim = 3, dispstr = "un", df.fixed = FALSE)
+fit_t <- fitCopula(t_copula, u, method = "mpl")
+
+# Extract estimated parameters
+coef_t <- coef(fit_t)
+
+# Standard errors
+se_t <- sqrt(diag(vcov(fit_t)))
+
+bic_gaussian <- get_bic(fit_gaussian, u)
+bic_t        <- get_bic(fit_t, u)
+
+cat("BIC for Gaussian Copula:", bic_gaussian, "\n")
+cat("BIC for t Copula:", bic_t, "\n")
+
+# Print results
+print(fit_t)
+
+cat("Estimated parameters for t copula:\n")
+print(coef_t)
+
+cat("SE for t copula parameters:\n")
+print(se_t)
+```
+
+```{r normal_t_b3}
+
+# Convert data to pseudo-observations (copula scale)
+u <- pobs(b3)
+# ---------------------------
+# Gaussian copula
+# ---------------------------
+gaussian_copula <- normalCopula(dim = 3, dispstr = "un")
+fit_gaussian <- fitCopula(gaussian_copula, u, method = "mpl")
+
+# Extract estimated parameters
+coef_gaussian <- coef(fit_gaussian)
+
+# Standard errors
+se_gaussian <- sqrt(diag(vcov(fit_gaussian)))
+
+# Print results
+print(fit_gaussian)
+
+cat("Estimated parameters for Gaussian copula:\n")
+print(coef_gaussian)
+
+cat("SE for Gaussian copula parameters:\n")
+print(se_gaussian)
+
+
+# ---------------------------
+# t copula
+# ---------------------------
+t_copula <- tCopula(dim = 3, dispstr = "un", df.fixed = FALSE)
+fit_t <- fitCopula(t_copula, u, method = "mpl")
+
+# Extract estimated parameters
+coef_t <- coef(fit_t)
+
+# Standard errors
+se_t <- sqrt(diag(vcov(fit_t)))
+
+bic_gaussian <- get_bic(fit_gaussian, u)
+bic_t        <- get_bic(fit_t, u)
+
+cat("BIC for Gaussian Copula:", bic_gaussian, "\n")
+cat("BIC for t Copula:", bic_t, "\n")
+
+# Print results
+print(fit_t)
+
+cat("Estimated parameters for t copula:\n")
+print(coef_t)
+
+cat("SE for t copula parameters:\n")
+print(se_t)
+```
+
