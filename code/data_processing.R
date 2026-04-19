@@ -6,7 +6,7 @@ library(plyr)
 library(imputeTS)
 
 ### 1) Precipitation (DAILY; remove Feb 29)
-precip_raw <- read_excel("~/Downloads/BP_sikorski_precip.xlsx") %>%
+precip_raw <- read_excel("~file_path/BP_sikorski_precip.xlsx") %>%
   mutate(dtime = as.POSIXct(dtime * 86400, origin = "1970-01-01", tz = "UTC")) %>%
   select(dtime, precip_in = bpPrcp)
 
@@ -19,7 +19,7 @@ precip_daily <- precip_raw %>%
 
 
 ### 2) Water level (HOURLY; round to hour, 1 per hour, full grid, no Feb 29)
-waterlevel_raw <- read_excel("~/Downloads/BPsealevel.xlsx") %>%
+waterlevel_raw <- read_excel("~file_path/BPsealevel.xlsx") %>%
   dplyr::rename(
     dtime    = `Days since Jan1, 1970`,
     wl_obs   = `BP_NAVDsealevel (m)`,
@@ -59,7 +59,7 @@ waterlevel_hourly <- waterlevel_hourly_grid %>%
 
 # --- Pre-2000 wind from .Rda
 env_wind <- new.env()
-load("/Users/kapilchandak/Dropbox/Marine Sciences-2024/Code- Joint Probability of High Coastal Sea Level and High Precipitation/ImputationCode/Sikorsky-Bridgeport_merged1.Rda",
+load("~file_path/Sikorsky-Bridgeport_merged1.Rda",
      envir = env_wind)
 wind_pre2000_raw <- get(ls(env_wind), envir = env_wind)
 rm(env_wind)
@@ -82,7 +82,7 @@ wind_pre2000_hourly <- wind_pre2000_raw %>%
   filter(format(time, "%m-%d") != "02-29")
 
 # --- 2000+ wind from CSV
-wind_2000plus_raw <- read.csv("~/Downloads/combined_data_filtered.csv",
+wind_2000plus_raw <- read.csv("~file_path/combined_data_filtered.csv",
                               stringsAsFactors = FALSE)
 colnames(wind_2000plus_raw) <- c("Timestamp", "WDIR", "WSPD")
 
@@ -390,7 +390,7 @@ ggsave("daily_timeseries_2x2.pdf", fig_2x2, width = 14, height = 9)
 library(ggplot2)
 
 # main directory
-out_dir <- "/Users/kapilchandak/Library/CloudStorage/Dropbox/Marine Sciences-2024/MV Dependence/Method1"
+out_dir <- "file_path"
 
 # create subdirectory for scatterplots
 scatter_dir <- file.path(out_dir, "Figure2_scatterplots")
@@ -465,7 +465,7 @@ fig 3
 library(evd)
 
 # main directory
-out_dir <- "/Users/kapilchandak/Library/CloudStorage/Dropbox/Marine Sciences-2024/MV Dependence/Method1"
+out_dir <- "file_path"
 
 # create subdirectory for return level curves
 rl_dir <- file.path(out_dir, "Figure3_return_level_curves")
