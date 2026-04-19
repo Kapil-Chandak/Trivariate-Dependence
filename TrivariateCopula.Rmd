@@ -29,7 +29,7 @@ library(MASS)
 
 # Read data
 
-setwd("/Users/kapilchandak/Library/CloudStorage/Dropbox/Marine Sciences-2024/MV Dependence/Method1")
+setwd("file_path")
 a<-read.csv("daily_data.csv")
 
 b1<-a[,c(3,7,9)]
