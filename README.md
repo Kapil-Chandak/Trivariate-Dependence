@@ -14,4 +14,4 @@ This repository contains the R code and datasets used to investigate compound fl
 The analysis is performed using **R (version 4.0+)**. To run the scripts, install the following dependencies:
 
 ```r
-install.packages(c("copula", "evd", "MASS", "tidyverse"))
+install.packages(c("copula", "evd", "MASS", "tidyverse", "dplyr"))
