@@ -18,7 +18,7 @@ precip_daily <- precip_raw %>%
   select(date, precip_in)
 
 
-### 2) Water level (HOURLY; round to hour, 1 per hour, full grid, no Feb 29)
+### 2) Water level (HOURLY)
 waterlevel_raw <- read_excel("~file_path/BPsealevel.xlsx") %>%
   dplyr::rename(
     dtime    = `Days since Jan1, 1970`,
@@ -55,7 +55,7 @@ waterlevel_hourly <- waterlevel_hourly_grid %>%
 
 
 
-### 3) Wind (HOURLY; pre-2000 from RDA + 2000+ from CSV; round, 1 per hour, full grid, no Feb 29)
+### 3) Wind (HOURLY; pre-2000 from RDA + 2000+ from CSV)
 
 # --- Pre-2000 wind from .Rda
 env_wind <- new.env()
@@ -115,7 +115,7 @@ wind_2000plus_hourly <- wind_2000plus_prep %>%
   select(time, WSPD, WDIR) %>%
   filter(format(time, "%m-%d") != "02-29")
 
-# --- Combine wind and grid to full hourly sequence 
+# --- Combine wind files
 wind_hourly_obs <- bind_rows(wind_pre2000_hourly, wind_2000plus_hourly) %>%
   arrange(time) %>%
   group_by(time) %>%
@@ -152,7 +152,7 @@ wind_hourly <- wind_hourly %>%
 
 precip_daily$precip_in<-as.numeric(precip_daily$precip_in)
 
-# Add date parts if not already present
+# Add date parts 
 wind_hourly <- wind_hourly %>%
   mutate(
     year   = year(time),
@@ -249,15 +249,15 @@ hourly_data <- full_join(
 ) %>%
   arrange(time)
 
-hourly_data <- hourly_data %>%
-  mutate(
-    wdir_group = case_when(
-      is.na(WDIR)               ~ NA_real_,
-      WDIR >= 60  & WDIR <= 180 ~ 1,
-      WDIR >= 240 & WDIR <= 300 ~ 2,
-      TRUE                      ~ 3
-    )
-  )
+#hourly_data <- hourly_data %>%
+# mutate(
+#    wdir_group = case_when(
+#      is.na(WDIR)               ~ NA_real_,
+#      WDIR >= 60  & WDIR <= 180 ~ 1,
+#      WDIR >= 240 & WDIR <= 300 ~ 2,
+#      TRUE                      ~ 3
+#    )
+#  )
 
 hourly_data <- hourly_data %>%
   mutate(
