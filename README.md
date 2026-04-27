@@ -1,6 +1,6 @@
 # Trivariate-Dependence: Modeling Compound Flooding Risks
 
-This repository contains the R code and datasets used to investigate compound flooding risks in **Bridgeport, Connecticut** by using trivariate copula models, incorporating non-tidal residual sea level, precipitation, and wind data to improve flood risk assessment and understand the causes and relationships between variables responsible for flood risks.
+This repository contains the R code and datasets used to investigate compound flooding risks in **Bridgeport, Connecticut** by using trivariate copula models, incorporating non-tidal residual sea level, precipitation, and wind data to improve flood risk assessment and understand the causes and relationships between variables responsible for compound flood risks.
 
 ## Structure
 
