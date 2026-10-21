@@ -6,7 +6,7 @@ library(plyr)
 library(imputeTS)
 
 ### 1) Precipitation (DAILY; remove Feb 29)
-precip_raw <- read_excel("~file_path/BP_sikorski_precip.xlsx") %>%
+precip_raw <- read_excel("~/data/BP_sikorski_precip.xlsx") %>%
   mutate(dtime = as.POSIXct(dtime * 86400, origin = "1970-01-01", tz = "UTC")) %>%
   select(dtime, precip_in = bpPrcp)
 
@@ -18,8 +18,8 @@ precip_daily <- precip_raw %>%
   select(date, precip_in)
 
 
-### 2) Water level (HOURLY)
-waterlevel_raw <- read_excel("~file_path/BPsealevel.xlsx") %>%
+### 2) Water level (HOURLY; round to hour, 1 per hour, full grid, no Feb 29)
+waterlevel_raw <- read_excel("~/data/BPsealevel.xlsx") %>%
   dplyr::rename(
     dtime    = `Days since Jan1, 1970`,
     wl_obs   = `BP_NAVDsealevel (m)`,
@@ -55,11 +55,11 @@ waterlevel_hourly <- waterlevel_hourly_grid %>%
 
 
 
-### 3) Wind (HOURLY; pre-2000 from RDA + 2000+ from CSV)
+### 3) Wind (HOURLY; pre-2000 from RDA + 2000+ from CSV; round, 1 per hour, full grid, no Feb 29)
 
 # --- Pre-2000 wind from .Rda
 env_wind <- new.env()
-load("~file_path/Sikorsky-Bridgeport_merged1.Rda",
+load("data/Sikorsky-Bridgeport_merged1.Rda",
      envir = env_wind)
 wind_pre2000_raw <- get(ls(env_wind), envir = env_wind)
 rm(env_wind)
@@ -82,7 +82,7 @@ wind_pre2000_hourly <- wind_pre2000_raw %>%
   filter(format(time, "%m-%d") != "02-29")
 
 # --- 2000+ wind from CSV
-wind_2000plus_raw <- read.csv("~file_path/combined_data_filtered.csv",
+wind_2000plus_raw <- read.csv("~/data/combined_data_filtered.csv",
                               stringsAsFactors = FALSE)
 colnames(wind_2000plus_raw) <- c("Timestamp", "WDIR", "WSPD")
 
@@ -115,7 +115,7 @@ wind_2000plus_hourly <- wind_2000plus_prep %>%
   select(time, WSPD, WDIR) %>%
   filter(format(time, "%m-%d") != "02-29")
 
-# --- Combine wind files
+# --- Combine wind and grid to full hourly sequence 
 wind_hourly_obs <- bind_rows(wind_pre2000_hourly, wind_2000plus_hourly) %>%
   arrange(time) %>%
   group_by(time) %>%
@@ -152,7 +152,7 @@ wind_hourly <- wind_hourly %>%
 
 precip_daily$precip_in<-as.numeric(precip_daily$precip_in)
 
-# Add date parts 
+# Add date parts if not already present
 wind_hourly <- wind_hourly %>%
   mutate(
     year   = year(time),
@@ -164,6 +164,9 @@ wind_hourly <- wind_hourly %>%
   )
 
 Data <- data.frame()
+
+# Set global seed ONCE here for exact reproducibility across all years and cases
+set.seed(5)
 
 for (y1 in 1973:2023) {
   
@@ -209,7 +212,7 @@ for (y1 in 1973:2023) {
   rle11 <- rep(ifelse(rle1$values, rle1$lengths, 0), times = rle1$lengths)
   
   ind1 <- which(rle11 > 5)
-  set.seed(5)
+
   sample1 <- sample(which(rle11 == 0), size = length(ind1), replace = TRUE)
   
   data_sub2$WSPD[ind1] <- data_sub2$WSPD[sample1]
@@ -249,15 +252,15 @@ hourly_data <- full_join(
 ) %>%
   arrange(time)
 
-#hourly_data <- hourly_data %>%
-# mutate(
-#    wdir_group = case_when(
-#      is.na(WDIR)               ~ NA_real_,
-#      WDIR >= 60  & WDIR <= 180 ~ 1,
-#      WDIR >= 240 & WDIR <= 300 ~ 2,
-#      TRUE                      ~ 3
-#    )
-#  )
+hourly_data <- hourly_data %>%
+  mutate(
+    wdir_group = case_when(
+      is.na(WDIR)               ~ NA_real_,
+      WDIR >= 60  & WDIR <= 180 ~ 1,
+      WDIR >= 240 & WDIR <= 300 ~ 2,
+      TRUE                      ~ 3
+    )
+  )
 
 hourly_data <- hourly_data %>%
   mutate(
@@ -333,14 +336,14 @@ xscale_fixed <- scale_x_date(
   limits      = as.Date(c("1973-01-01", "2023-12-31")),
   date_breaks = "5 years",
   date_labels = "%Y",
-  expand      = c(0, 0)
+  expand      = c(0.01, 0)
 )
 
 # --- Panels
 p_dt <- ggplot(daily_data, aes(x = date, y = d_t, color = t_num)) +
   geom_line(linewidth = 0.6) +
   labs(
-    title = "Daily maximum sea-level residual",
+    title = "(a) Daily maximum sea-level residual",
     x = "Year",
     y = expression(bold(D[t])~"(m)")
   ) +
@@ -349,7 +352,7 @@ p_dt <- ggplot(daily_data, aes(x = date, y = d_t, color = t_num)) +
 p_pr <- ggplot(daily_data, aes(x = date, y = precip_in, color = t_num)) +
   geom_line(linewidth = 0.6, alpha = 0.65) +  # slight alpha to avoid looking bolder
   labs(
-    title = "Daily total precipitation",
+    title = "(b) Daily total precipitation",
     x = "Year",
     y = "Precipitation (in)"
   ) +
@@ -358,7 +361,7 @@ p_pr <- ggplot(daily_data, aes(x = date, y = precip_in, color = t_num)) +
 p_ut <- ggplot(daily_data, aes(x = date, y = u_t, color = t_num)) +
   geom_line(linewidth = 0.6) +
   labs(
-    title = expression("Daily maximum eastward wind component (" * u[t] * ")"),
+    title = expression("(c) Daily maximum eastward wind component (" * u[t] * ")"),
     x = "Year",
     y = expression(bold(u[t])~"(m s"^{-1}*")")
   ) +
@@ -367,7 +370,7 @@ p_ut <- ggplot(daily_data, aes(x = date, y = u_t, color = t_num)) +
 p_vt <- ggplot(daily_data, aes(x = date, y = v_t, color = t_num)) +
   geom_line(linewidth = 0.6) +
   labs(
-    title = expression("Daily maximum northward wind component (" * v[t] * ")"),
+    title = expression("(d) Daily maximum northward wind component (" * v[t] * ")"),
     x = "Year",
     y = expression(bold(v[t])~"(m s"^{-1}*")")
   ) +
@@ -390,7 +393,7 @@ ggsave("daily_timeseries_2x2.pdf", fig_2x2, width = 14, height = 9)
 library(ggplot2)
 
 # main directory
-out_dir <- "file_path"
+out_dir <- "file path"
 
 # create subdirectory for scatterplots
 scatter_dir <- file.path(out_dir, "Figure2_scatterplots")
@@ -460,12 +463,11 @@ ggsave(file.path(scatter_dir, "scatter_northwind.png"),
 ggsave(file.path(scatter_dir, "scatter_northwind.pdf"),
        fig_northwind, width = 7, height = 5)
 
-fig 3
+#fig 3
 
 library(evd)
 
 # main directory
-out_dir <- "file_path"
 
 # create subdirectory for return level curves
 rl_dir <- file.path(out_dir, "Figure3_return_level_curves")
@@ -571,6 +573,40 @@ plot(m3, which=3, p=c(0.9,0.95,0.99),
      cex.lab=1.6, cex.axis=1.4, cex.main=1.4)
 
 dev.off()
+
+ # ------------------------------------------------------------
+# Threshold-heuristic summary for reviewer response
+ # Assumes k1,k2,k3 and thresh1,thresh2,thresh3 already exist
+ # from the fbvpot fitting block above.
+ # ------------------------------------------------------------
+ 
+summarize_thresh <- function(data, k0, thresh) {
+    +     # exceedance count per margin at its chosen threshold
+      +     counts <- sapply(names(thresh), function(v) sum(data[[v]] >= thresh[v]))
+      +     data.frame(
+        +         variable   = names(thresh),
+        +         k0         = k0,
+        +         rank_used  = (k0 + 5) / 2,       # the (k0+5)/2 order statistic
+        +         threshold  = round(as.numeric(thresh), 4),
+        +         n_exceed   = as.integer(counts),
+        +         n_total    = nrow(data),
+        +         pct_exceed = round(100 * as.integer(counts) / nrow(data), 3),
+        +         row.names  = NULL
+        +     )
+      + }
+ 
+res1 <- summarize_thresh(Data1, k1, thresh1)   # (P_t, D_t)
+res2 <- summarize_thresh(Data2, k2, thresh2)   # (-u_t, D_t)
+res3 <- summarize_thresh(Data3, k3, thresh3)   # (v_t, D_t)
+
+res1$triad <- "1: (Dt, Pt, -ut)"
+res2$triad <- "2: (-Dt, Pt, ut)"
+res3$triad <- "3: (Dt, Pt, vt)"
+ 
+summary_tbl <- rbind(res1, res2, res3)
+summary_tbl <- summary_tbl[, c("triad","variable","k0","rank_used",
+                                 +                                "threshold","n_exceed","n_total","pct_exceed")]
+print(summary_tbl, row.names = FALSE)
 
 # Hourly data
 write.csv(
