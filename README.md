@@ -6,7 +6,7 @@ This repository contains the R code and datasets used to investigate compound fl
 
 * **code**: Contains R scripts and analysis files.
     * `data_processing.R`: Pre-processing of datasets and plots.
-    * `TrivariateCopula.Rmd`: Implementation of copula models for tail dependence.
+    * `Rubins.R`: Implementation of copula models for tail dependence using Rubins procedure.
 * **data**: Source datasets including wind speed, direction, precipitation, and sea levels.
 
 ## Requirements
