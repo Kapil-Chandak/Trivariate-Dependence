@@ -6,7 +6,7 @@ library(plyr)
 library(imputeTS)
 
 ### 1) Precipitation (DAILY; remove Feb 29)
-precip_raw <- read_excel("~/Downloads/BP_sikorski_precip.xlsx") %>%
+precip_raw <- read_excel("~/data/BP_sikorski_precip.xlsx") %>%
   mutate(dtime = as.POSIXct(dtime * 86400, origin = "1970-01-01", tz = "UTC")) %>%
   select(dtime, precip_in = bpPrcp)
 precip_raw$precip_in <- as.numeric(precip_raw$precip_in)
@@ -17,7 +17,7 @@ precip_daily <- precip_raw %>%
   select(date, precip_in)
 
 ### 2) Water level (HOURLY; round to hour, 1 per hour, full grid, no Feb 29)
-waterlevel_raw <- read_excel("~/Downloads/BPsealevel.xlsx") %>%
+waterlevel_raw <- read_excel("~/data/BPsealevel.xlsx") %>%
   dplyr::rename(
     dtime    = `Days since Jan1, 1970`,
     wl_obs   = `BP_NAVDsealevel (m)`,
@@ -60,7 +60,7 @@ wind_pre2000_hourly <- wind_pre2000_raw %>%
   filter(time <= as.POSIXct("1999-12-31 23:59:59", tz = "UTC")) %>%
   filter(format(time, "%m-%d") != "02-29")
 
-wind_2000plus_raw <- read.csv("~/Downloads/combined_data_filtered.csv", stringsAsFactors = FALSE)
+wind_2000plus_raw <- read.csv("~/data/combined_data_filtered.csv", stringsAsFactors = FALSE)
 colnames(wind_2000plus_raw) <- c("Timestamp", "WDIR", "WSPD")
 wind_2000plus_prep <- wind_2000plus_raw
 wind_2000plus_prep$Timestamp <- trimws(as.character(wind_2000plus_prep$Timestamp))
