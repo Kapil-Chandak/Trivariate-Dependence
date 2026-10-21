@@ -1,5 +1,5 @@
 library(copula)
-setwd("/Users/kapilchandak/Library/CloudStorage/Dropbox/Marine Sciences-2024/MV Dependence/Method1")
+setwd("data")
 a <- read.csv("daily_data.csv")
 zero_idx <- which(a$precip_in == 0); n_zero <- length(zero_idx)
 
