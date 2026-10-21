@@ -1,5 +1,5 @@
 library(copula)
-setwd("/Users/kapilchandak/Library/CloudStorage/Dropbox/Marine Sciences-2024/MV Dependence/Method1")
+setwd("data")
 daily <- read.csv("daily_data.csv")
 
 set.seed(5)
